@@ -2,7 +2,6 @@
 // Simulamos lectura para este ejemplo de código base
 // En MakeCode real: humedad_actual = dht11.dht11_read(PIN_DHT11, dht11.DHT11Type.HUMIDITY)
 function leer_sensor () {
-    let estado_sistema = 0
     dht11_dht22.queryData(
     DHTtype.DHT11,
     DigitalPin.P8,
@@ -13,11 +12,13 @@ function leer_sensor () {
     if (dht11_dht22.readDataSuccessful()) {
         humedad_actual = dht11_dht22.readData(dataType.humidity)
         humedad_actual = dht11_dht22.readData(dataType.humidity)
-        makerbit.showStringOnLcd1602("" + (dht11_dht22.readData(dataType.humidity)), makerbit.position1602(LcdPosition1602.Pos12), 16)
+        makerbit.showStringOnLcd1602("" + dht11_dht22.readData(dataType.humidity), makerbit.position1602(LcdPosition1602.Pos12), 16)
     }
-    makerbit.showStringOnLcd1602("" + (estado_sistema), makerbit.position1602(LcdPosition1602.Pos17), 16)
+    makerbit.showStringOnLcd1602(estado_sistema, makerbit.position1602(LcdPosition1602.Pos17), 16)
 }
 let humedad_actual = 0
+let estado_sistema = ""
+estado_sistema = "ESTABLE"
 // PROYECTO: GUARDIÁN DEL CLIMA
 // Lógica con Histéresis y Control de Estados
 // --- CONFIGURACIÓN ---
@@ -44,6 +45,17 @@ makerbit.setLcdBacklight(LcdBacklight.On)
 makerbit.showStringOnLcd1602("Humedad:", makerbit.position1602(LcdPosition1602.Pos1), 16)
 // Leer cada 2 segundos
 basic.forever(function () {
-    leer_sensor()
-    basic.pause(1000)
+    let estado_sistema2: string;
+leer_sensor()
+    basic.pause(2000)
+    if (humedad_actual < umbral_seco_activar) {
+        estado_sistema = "HUMIDIFICANDO"
+    } else if (estado_sistema == "HUMIDIFICANDO" && humedad_actual > umbral_seco_apagar) {
+        estado_sistema = "ESTABLE"
+    } else if (humedad_actual > umbral_humedo_activar) {
+        // --- MODO SECADO ---
+        estado_sistema = "SECANDO"
+    } else if (estado_sistema == "SECANDO" && humedad_actual < umbral_humedo_apagar) {
+        estado_sistema = "ESTABLE"
+    }
 })

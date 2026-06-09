@@ -10,11 +10,12 @@ def leer_sensor():
         makerbit.show_string_on_lcd1602("" + str(dht11_dht22.read_data(dataType.HUMIDITY)),
             makerbit.position1602(LcdPosition1602.POS12),
             16)
-    makerbit.show_string_on_lcd1602("" + str((0)),
+    makerbit.show_string_on_lcd1602(estado_sistema,
         makerbit.position1602(LcdPosition1602.POS17),
         16)
-estado_sistema = ""
 humedad_actual = 0
+estado_sistema = ""
+estado_sistema = "ESTABLE"
 # PROYECTO: GUARDIÁN DEL CLIMA
 # Lógica con Histéresis y Control de Estados
 # --- CONFIGURACIÓN ---
@@ -44,28 +45,14 @@ makerbit.show_string_on_lcd1602("Humedad:", makerbit.position1602(LcdPosition160
 def on_forever():
     global estado_sistema
     leer_sensor()
-    basic.pause(1000)
+    basic.pause(2000)
     if humedad_actual < umbral_seco_activar:
         estado_sistema = "HUMIDIFICANDO"
     elif estado_sistema == "HUMIDIFICANDO" and humedad_actual > umbral_seco_apagar:
         estado_sistema = "ESTABLE"
-        if estado_sistema == "HUMIDIFICANDO":
-                pins.digital_write_pin(PIN_LED_AZUL, 1)
-                pins.digital_write_pin(PIN_LED_ROJO, 0)
-                pins.digital_write_pin(PIN_MOTOR, 1)       # Ventilador ON
-                pins.servo_write_pin(PIN_SERVO, 0)         # Compuerta Cerrada
-                music.play_tone(262, music.beat(BeatFraction.SIXTEENTH)) # Beep suave
-                
-        elif estado_sistema == "SECANDO":
-                pins.digital_write_pin(PIN_LED_AZUL, 0)
-                pins.digital_write_pin(PIN_LED_ROJO, 1)
-                pins.digital_write_pin(PIN_MOTOR, 1)       # Ventilador ON (Circulación)
-                pins.servo_write_pin(PIN_SERVO, 90)        # Compuerta ABIERTA
-                music.play_tone(523, music.beat(BeatFraction.EIGHTH)) # Beep alerta
-                
-        else: # ESTABLE
-                pins.digital_write_pin(PIN_LED_AZUL, 0)
-                pins.digital_write_pin(PIN_LED_ROJO, 0)
-                pins.digital_write_pin(PIN_MOTOR, 0)       # Todo apagado
-                pins.servo_write_pin(PIN_SERVO, 0)
+    elif humedad_actual > umbral_humedo_activar:
+        # --- MODO SECADO ---
+        estado_sistema = "SECANDO"
+    elif estado_sistema == "SECANDO" and humedad_actual < umbral_humedo_apagar:
+        estado_sistema = "ESTABLE"
 basic.forever(on_forever)
