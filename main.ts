@@ -44,9 +44,9 @@ makerbit.connectLcd(39)
 makerbit.setLcdBacklight(LcdBacklight.On)
 makerbit.showStringOnLcd1602("Humedad:", makerbit.position1602(LcdPosition1602.Pos1), 16)
 // Leer cada 2 segundos
+// Compuerta Cerrada
 basic.forever(function () {
-    let estado_sistema2: string;
-leer_sensor()
+    leer_sensor()
     basic.pause(2000)
     if (humedad_actual < umbral_seco_activar) {
         estado_sistema = "HUMIDIFICANDO"
@@ -57,5 +57,32 @@ leer_sensor()
         estado_sistema = "SECANDO"
     } else if (estado_sistema == "SECANDO" && humedad_actual < umbral_humedo_apagar) {
         estado_sistema = "ESTABLE"
+    }
+    // 4. Ejecución de Actuadores según Estado
+    if (estado_sistema == "HUMIDIFICANDO") {
+        pins.digitalWritePin(PIN_LED_AZUL, 1)
+        pins.digitalWritePin(PIN_LED_ROJO, 0)
+        pins.digitalWritePin(PIN_MOTOR, 1)
+        // Ventilador ON
+        pins.servoWritePin(PIN_SERVO, 0)
+        // Compuerta Cerrada
+        music.playTone(262, music.beat(BeatFraction.Sixteenth))
+    } else if (estado_sistema == "SECANDO") {
+        // Beep suave
+        pins.digitalWritePin(PIN_LED_AZUL, 0)
+        pins.digitalWritePin(PIN_LED_ROJO, 1)
+        pins.digitalWritePin(PIN_MOTOR, 1)
+        // Ventilador ON (Circulación)
+        pins.servoWritePin(PIN_SERVO, 90)
+        // Compuerta ABIERTA
+        music.playTone(523, music.beat(BeatFraction.Eighth))
+    } else if (estado_sistema == "ESTABLE") {
+        // Beep alerta
+        // ESTABLE
+        pins.digitalWritePin(PIN_LED_AZUL, 0)
+        pins.digitalWritePin(PIN_LED_ROJO, 0)
+        pins.digitalWritePin(PIN_MOTOR, 0)
+        // Todo apagado
+        pins.servoWritePin(PIN_SERVO, 0)
     }
 })

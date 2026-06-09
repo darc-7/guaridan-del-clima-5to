@@ -41,6 +41,7 @@ makerbit.connect_lcd(39)
 makerbit.set_lcd_backlight(LcdBacklight.ON)
 makerbit.show_string_on_lcd1602("Humedad:", makerbit.position1602(LcdPosition1602.POS1), 16)
 # Leer cada 2 segundos
+# Compuerta Cerrada
 
 def on_forever():
     global estado_sistema
