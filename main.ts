@@ -12,7 +12,7 @@ function leer_sensor () {
     if (dht11_dht22.readDataSuccessful()) {
         humedad_actual = dht11_dht22.readData(dataType.humidity)
         humedad_actual = dht11_dht22.readData(dataType.humidity)
-        makerbit.showStringOnLcd1602("" + dht11_dht22.readData(dataType.humidity), makerbit.position1602(LcdPosition1602.Pos12), 16)
+        makerbit.showStringOnLcd1602("" + (dht11_dht22.readData(dataType.humidity)), makerbit.position1602(LcdPosition1602.Pos12), 16)
     }
     makerbit.showStringOnLcd1602(estado_sistema, makerbit.position1602(LcdPosition1602.Pos17), 16)
 }
@@ -37,7 +37,7 @@ let PIN_MOTOR = DigitalPin.P12
 let PIN_LED_AZUL = DigitalPin.P0
 let PIN_LED_ROJO = DigitalPin.P1
 // Inicialización
-pins.servoWritePin(PIN_SERVO, 3)
+pins.servoWritePin(PIN_SERVO, 0)
 // Cerrar compuerta
 basic.showIcon(IconNames.Target)
 makerbit.connectLcd(39)
@@ -73,18 +73,18 @@ basic.forever(function () {
     if (estado_sistema == "ESTABLE") {
         pins.digitalWritePin(PIN_LED_AZUL, 0)
         pins.digitalWritePin(PIN_LED_ROJO, 0)
-        pins.digitalWritePin(PIN_MOTOR, 0)
+        pins.digitalWritePin(PIN_MOTOR, 1)
         pins.servoWritePin(PIN_SERVO, 0)
     } else if (estado_sistema == "HUMIDIFICANDO") {
         pins.digitalWritePin(PIN_LED_AZUL, 1)
         pins.digitalWritePin(PIN_LED_ROJO, 0)
-        pins.digitalWritePin(PIN_MOTOR, 1)
+        pins.digitalWritePin(PIN_MOTOR, 0)
         // Ventilador ON
         pins.servoWritePin(PIN_SERVO, 0)
     } else if (estado_sistema == "SECANDO") {
         pins.digitalWritePin(PIN_LED_AZUL, 0)
         pins.digitalWritePin(PIN_LED_ROJO, 1)
-        pins.digitalWritePin(PIN_MOTOR, 1)
+        pins.digitalWritePin(PIN_MOTOR, 0)
         // Ventilador ON (Circulación)
         pins.servoWritePin(PIN_SERVO, 90)
     }
