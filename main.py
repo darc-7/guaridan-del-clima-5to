@@ -49,11 +49,43 @@ def on_forever():
     basic.pause(2000)
     if humedad_actual < umbral_seco_activar:
         estado_sistema = "HUMIDIFICANDO"
+        # Cerrar compuerta
+        basic.show_icon(IconNames.QUARTER_NOTE)
     elif estado_sistema == "HUMIDIFICANDO" and humedad_actual > umbral_seco_apagar:
         estado_sistema = "ESTABLE"
+        # Cerrar compuerta
+        basic.show_icon(IconNames.PITCHFORK)
     elif humedad_actual > umbral_humedo_activar:
         # --- MODO SECADO ---
         estado_sistema = "SECANDO"
+        # Cerrar compuerta
+        basic.show_icon(IconNames.FABULOUS)
     elif estado_sistema == "SECANDO" and humedad_actual < umbral_humedo_apagar:
         estado_sistema = "ESTABLE"
+        # Cerrar compuerta
+        basic.show_icon(IconNames.PITCHFORK)
 basic.forever(on_forever)
+
+# Leer cada 2 segundos
+# Compuerta Cerrada
+
+def on_forever2():
+    if estado_sistema == "ESTABLE":
+        pins.digital_write_pin(PIN_LED_AZUL, 0)
+        pins.digital_write_pin(PIN_LED_ROJO, 0)
+        pins.digital_write_pin(PIN_MOTOR, 0)    
+        pins.servo_write_pin(PIN_SERVO, 0)
+        pass
+    elif estado_sistema == "HUMIDIFICANDO":
+        pins.digital_write_pin(PIN_LED_AZUL, 1)
+        pins.digital_write_pin(PIN_LED_ROJO, 0)
+        pins.digital_write_pin(PIN_MOTOR, 1)       # Ventilador ON
+        pins.servo_write_pin(PIN_SERVO, 0)
+        pass
+    elif estado_sistema == "SECANDO":
+        pins.digital_write_pin(PIN_LED_AZUL, 0)
+        pins.digital_write_pin(PIN_LED_ROJO, 1)
+        pins.digital_write_pin(PIN_MOTOR, 1)       # Ventilador ON (Circulación)
+        pins.servo_write_pin(PIN_SERVO, 90)
+        pass
+basic.forever(on_forever2)
