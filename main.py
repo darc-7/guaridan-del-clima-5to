@@ -13,6 +13,7 @@ def leer_sensor():
     makerbit.show_string_on_lcd1602(estado_sistema,
         makerbit.position1602(LcdPosition1602.POS17),
         16)
+    serial.write_value("humedad", dht11_dht22.read_data(dataType.HUMIDITY))
 humedad_actual = 0
 estado_sistema = ""
 estado_sistema = "ESTABLE"
@@ -31,10 +32,12 @@ umbral_humedo_apagar = 60
 PIN_DHT11 = DigitalPin.P8
 PIN_SERVO = AnalogPin.P2
 PIN_MOTOR = DigitalPin.P12
+MOTOR_CONTROL = AnalogPin.P16
 PIN_LED_AZUL = DigitalPin.P0
 PIN_LED_ROJO = DigitalPin.P1
 # Inicialización
-pins.servo_write_pin(PIN_SERVO, 3)
+pins.servo_write_pin(PIN_SERVO, 0)
+pins.analog_write_pin(AnalogPin.P16, 767)
 # Cerrar compuerta
 basic.show_icon(IconNames.TARGET)
 makerbit.connect_lcd(39)
@@ -44,9 +47,35 @@ makerbit.show_string_on_lcd1602("Humedad:", makerbit.position1602(LcdPosition160
 # Compuerta Cerrada
 
 def on_forever():
+    if estado_sistema == "ESTABLE":
+        pins.digital_write_pin(PIN_LED_AZUL, 0)
+        pins.digital_write_pin(PIN_LED_ROJO, 0)
+        pins.digital_write_pin(PIN_MOTOR, 0)
+        pins.analog_write_pin(MOTOR_CONTROL, 0)
+        pins.servo_write_pin(PIN_SERVO, 0)
+    elif estado_sistema == "HUMIDIFICANDO":
+        pins.digital_write_pin(PIN_LED_AZUL, 1)
+        pins.digital_write_pin(PIN_LED_ROJO, 0)
+        pins.digital_write_pin(PIN_MOTOR, 1)
+        pins.analog_write_pin(MOTOR_CONTROL, 767)
+        # Ventilador ON
+        pins.servo_write_pin(PIN_SERVO, 0)
+    elif estado_sistema == "SECANDO":
+        pins.digital_write_pin(PIN_LED_AZUL, 0)
+        pins.digital_write_pin(PIN_LED_ROJO, 1)
+        pins.digital_write_pin(PIN_MOTOR, 0)
+        pins.analog_write_pin(MOTOR_CONTROL, 0)
+        # Ventilador ON (Circulación)
+        pins.servo_write_pin(PIN_SERVO, 90)
+basic.forever(on_forever)
+
+# Leer cada 2 segundos
+# Compuerta Cerrada
+
+def on_forever2():
     global estado_sistema
-    leer_sensor()
     basic.pause(2000)
+    leer_sensor()
     if humedad_actual < umbral_seco_activar:
         estado_sistema = "HUMIDIFICANDO"
         # Cerrar compuerta
@@ -64,28 +93,4 @@ def on_forever():
         estado_sistema = "ESTABLE"
         # Cerrar compuerta
         basic.show_icon(IconNames.PITCHFORK)
-basic.forever(on_forever)
-
-# Leer cada 2 segundos
-# Compuerta Cerrada
-
-def on_forever2():
-    if estado_sistema == "ESTABLE":
-        pins.digital_write_pin(PIN_LED_AZUL, 0)
-        pins.digital_write_pin(PIN_LED_ROJO, 0)
-        pins.digital_write_pin(PIN_MOTOR, 0)    
-        pins.servo_write_pin(PIN_SERVO, 0)
-        pass
-    elif estado_sistema == "HUMIDIFICANDO":
-        pins.digital_write_pin(PIN_LED_AZUL, 1)
-        pins.digital_write_pin(PIN_LED_ROJO, 0)
-        pins.digital_write_pin(PIN_MOTOR, 1)       # Ventilador ON
-        pins.servo_write_pin(PIN_SERVO, 0)
-        pass
-    elif estado_sistema == "SECANDO":
-        pins.digital_write_pin(PIN_LED_AZUL, 0)
-        pins.digital_write_pin(PIN_LED_ROJO, 1)
-        pins.digital_write_pin(PIN_MOTOR, 1)       # Ventilador ON (Circulación)
-        pins.servo_write_pin(PIN_SERVO, 90)
-        pass
 basic.forever(on_forever2)
